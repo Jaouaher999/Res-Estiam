@@ -1,8 +1,8 @@
-# Meeting Room Booking System
+# School Room Reservation System
 
-### Live URL: [Visit the Live Site](https://level-2-assignment-3.onrender.com)
+A web-based application for reserving school rooms. Users can browse available rooms, view room photos, and book rooms for specific time periods. Admins can manage rooms and bookings, including uploading room photos to AWS S3.
 
-The **Meeting Room Booking System** is a web-based application that streamlines the process of reserving co-working spaces for meetings and discussions. It allows users to browse available rooms, book meeting slots, and manage their reservations. Admins can create and manage rooms, slots, and bookings efficiently.
+---
 
 ## Table of Contents
 
@@ -14,19 +14,17 @@ The **Meeting Room Booking System** is a web-based application that streamlines 
 - [Running the Application](#running-the-application)
 - [API Documentation](#api-documentation)
 - [Error Handling](#error-handling)
-- [Future Enhancements](#future-enhancements)
 
 ---
 
 ## Features
 
-- **User Authentication**: Secure user registration and login using JWT tokens.
-- **Room Management (Admin)**: Admins can create, update, and delete rooms, along with managing room details such as capacity, price per slot, and available amenities.
-- **Slot Management (Admin)**: Admins can create, view, and manage time slots for each room.
-- **Booking Management (User/Admin)**: Users can book multiple time slots, view their bookings, and receive feedback on slot availability.
+- **User Authentication**: Register and log in securely using JWT tokens.
+- **Room Management (Admin)**: Admins can create, update, delete rooms, and upload a photo for each room (stored in S3, public URL in `imagePath`).
+- **Room Photo Upload**: Each room can have a photo, uploaded to AWS S3 and accessible via a public URL.
+- **Booking Management**: Users can book any room for any time range (start and end date/time). The system prevents overlapping bookings.
 - **Soft Deletion**: Rooms and bookings can be soft-deleted by admins.
-- **Real-time Availability**: Users get instant feedback on available rooms and slots.
-- **Validation & Error Handling**: Robust error handling with descriptive error messages and form validation using Zod.
+- **Validation & Error Handling**: Robust error handling and validation.
 
 ---
 
@@ -35,32 +33,27 @@ The **Meeting Room Booking System** is a web-based application that streamlines 
 - **Backend**: Node.js, Express.js, TypeScript
 - **Database**: MongoDB with Mongoose ODM
 - **Authentication**: JWT (JSON Web Token)
-- **Validation**: Zod
+- **File Uploads**: AWS S3, multer, multer-s3
 - **Environment Management**: dotenv
-- **Development Tools**: ESLint, Prettier, Nodemon
 
 ---
 
 ## Prerequisites
 
-Before you begin, ensure you have met the following requirements:
-
-- **Node.js**: Install Node.js (v14 or higher) from [here](https://nodejs.org/).
-- **MongoDB**: Install MongoDB or use a cloud service like [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
-- **npm or yarn**: Package manager for Node.js dependencies.
+- **Node.js**: v14 or higher
+- **MongoDB**: Local or [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+- **AWS S3**: An S3 bucket with public read access for objects
+- **npm**: For managing dependencies
 
 ---
 
 ## Installation
 
-To set up the project locally, follow these steps:
-
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/AJAmran/level-2-assignment-3.git
-   cd meeting-room-booking-system
+   git clone <your-repo-url>
+   cd <project-folder>
    ```
-
 2. **Install dependencies:**
    ```bash
    npm install
@@ -70,12 +63,16 @@ To set up the project locally, follow these steps:
 
 ## Environment Variables
 
-Create a `.env` file in the root directory to store your environment variables. Add the following:
+Create a `.env` file in the root directory with:
 
-```plaintext
+```
 PORT=5000
-MONGO_URI=your-mongodb-connection-string
+MONGODB_URI=your-mongodb-connection-string
 JWT_SECRET=your-secret-key
+AWS_ACCESS_KEY_ID=your-access-key-id
+AWS_SECRET_ACCESS_KEY=your-secret-access-key
+AWS_REGION=your-region
+AWS_S3_BUCKET_NAME=your-bucket-name
 ```
 
 ---
@@ -86,112 +83,83 @@ JWT_SECRET=your-secret-key
    ```bash
    npm run start:dev
    ```
-
 2. **Build for production:**
    ```bash
    npm run build
    ```
-
 3. **Run production build:**
    ```bash
    npm run start:prod
    ```
 
-Once the server is up and running, the application will be available at [http://localhost:5000](http://localhost:5000).
-
 ---
 
 ## API Documentation
 
-The API follows a RESTful architecture. Here are some key routes:
+### Authentication
 
-### Authentication Routes
-
-| Method | Endpoint           | Description                    |
-|--------|--------------------|--------------------------------|
-| POST   | `/api/auth/signup`  | Register a new user            |
-| POST   | `/api/auth/login`   | Log in and get a token         |
+| Method | Endpoint         | Description            |
+| ------ | ---------------- | ---------------------- |
+| POST   | /api/auth/signup | Register a new user    |
+| POST   | /api/auth/login  | Log in and get a token |
 
 ### Room Management (Admin Only)
 
-| Method | Endpoint             | Description                      |
-|--------|----------------------|----------------------------------|
-| POST   | `/api/rooms`         | Create a new room                |
-| GET    | `/api/rooms`         | Retrieve all rooms               |
-| GET    | `/api/rooms/:id`     | Retrieve a specific room         |
-| PUT    | `/api/rooms/:id`     | Update room details              |
-| DELETE | `/api/rooms/:id`     | Soft-delete a room               |
-
-### Slot Management (Admin Only)
-
-| Method | Endpoint            | Description                      |
-|--------|---------------------|----------------------------------|
-| POST   | `/api/slots`        | Create new time slots for a room |
-| GET    | `/api/slots`        | Get all available slots          |
+| Method | Endpoint             | Description                                             |
+| ------ | -------------------- | ------------------------------------------------------- |
+| POST   | /api/rooms           | Create a new room                                       |
+| GET    | /api/rooms           | Retrieve all rooms                                      |
+| GET    | /api/rooms/:id       | Retrieve a specific room                                |
+| PUT    | /api/rooms/:id       | Update room details                                     |
+| DELETE | /api/rooms/:id       | Soft-delete a room                                      |
+| POST   | /api/rooms/:id/photo | Upload a room photo (form-data, key: photo, type: file) |
 
 ### Booking Management
 
-| Method | Endpoint              | Description                    |
-|--------|-----------------------|--------------------------------|
-| POST   | `/api/bookings`       | Create a new booking           |
-| GET    | `/api/bookings`       | Retrieve all bookings (Admin)  |
-| GET    | `/api/my-bookings`    | Retrieve user's bookings       |
-| PUT    | `/api/bookings/:id`   | Update a booking (Admin)       |
-| DELETE | `/api/bookings/:id`   | Soft-delete a booking (Admin)  |
+| Method | Endpoint          | Description                   |
+| ------ | ----------------- | ----------------------------- |
+| POST   | /api/bookings     | Create a new booking          |
+| GET    | /api/bookings     | Retrieve all bookings (Admin) |
+| GET    | /api/my-bookings  | Retrieve user's bookings      |
+| PUT    | /api/bookings/:id | Update a booking (Admin)      |
+| DELETE | /api/bookings/:id | Soft-delete a booking (Admin) |
 
-Refer to the [Postman Collection](#) for detailed API examples.
+#### Booking Example (JSON):
+
+```json
+{
+  "room": "<roomId>",
+  "user": "<userId>",
+  "startDate": "2024-07-01T09:00:00Z",
+  "endDate": "2024-07-01T11:00:00Z"
+}
+```
+
+#### Room Photo Upload Example (Postman):
+
+- Method: POST
+- URL: http://localhost:5000/api/rooms/<roomId>/photo
+- Headers: Authorization: Bearer <admin_token>
+- Body: form-data, key: `photo`, type: File
 
 ---
 
 ## Error Handling
 
-The application uses a centralized error handler to catch and respond with appropriate error messages. Here’s an example error response:
+All errors return a JSON response with a message and details. Example:
 
 ```json
 {
   "success": false,
   "message": "Validation Error",
-  "errorMessages": [
-    {
-      "path": "email",
-      "message": "Email is required"
-    }
-  ],
-  "stack": "Error stack trace (only in development mode)"
+  "errorMessages": [{ "path": "email", "message": "Email is required" }]
 }
 ```
-
-### Not Found Route
-
-For any unmatched routes, the API responds with a 404 error:
-
-```json
-{
-  "success": false,
-  "statusCode": 404,
-  "message": "Not Found"
-}
-```
-
----
-
-## Future Enhancements
-
-- **Room Availability Calendar**: A graphical calendar to show room availability.
-- **Email Notifications**: Notify users about their bookings via email.
-- **Payment Gateway**: Integration with a payment gateway to handle slot booking payments.
-- **Admin Dashboard**: A UI dashboard for admins to manage rooms, slots, and bookings easily.
 
 ---
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+MIT
 
----
-
-### Contributors
-
-- **MD Amran Hossen** - *Project Lead & Full Stack Developer*
-
-"# meeting_room_booking-System" 
+"# meeting_room_booking-System"
