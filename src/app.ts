@@ -4,7 +4,6 @@ import rateLimit from "express-rate-limit";
 import mongoSanitize from "express-mongo-sanitize";
 import authRoutes from "./routes/auth.routes";
 import roomRoutes from "./routes/room.routes";
-import slotRoutes from "./routes/slot.routes";
 import bookingRoutes from "./routes/booking.routes";
 import errorHandler from "./middlewares/errorHandler";
 import { notFoundHandler } from "./middlewares/notFound";
@@ -27,7 +26,6 @@ app.use(
 //Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/rooms", roomRoutes);
-app.use("/api/slots", slotRoutes);
 app.use("/api", bookingRoutes);
 
 app.get("/", (req: Request, res: Response) => {

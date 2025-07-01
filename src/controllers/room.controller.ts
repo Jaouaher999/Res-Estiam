@@ -4,16 +4,14 @@ import { errorResponse, successResponse } from "../utils/responseHandler";
 
 //create room (Admin only)
 export const createRoom = async (req: Request, res: Response) => {
-  const { name, roomNo, floorNo, capacity, pricePerSlot, amenities } = req.body;
+  const { name, roomNo, capacity, materials } = req.body;
 
   try {
     const room = await Room.create({
       name,
       roomNo,
-      floorNo,
       capacity,
-      pricePerSlot,
-      amenities,
+      materials,
     });
     return successResponse(res, "Room added successfully", room, 201);
   } catch (error) {
@@ -71,7 +69,6 @@ export const updateRoom = async (req: Request, res: Response) => {
 };
 
 //delete room (soft delete, admin only)
-
 export const deleteRoom = async (req: Request, res: Response) => {
   try {
     const room = await Room.findByIdAndUpdate(
@@ -84,6 +81,28 @@ export const deleteRoom = async (req: Request, res: Response) => {
         .status(404)
         .json({ success: false, message: "Room not found" });
     return successResponse(res, "Room deleted successfully", room);
+  } catch (error) {
+    return errorResponse(res, (error as Error).message);
+  }
+};
+
+// Upload room photo and update imagePath
+export const uploadRoomPhoto = async (
+  req: Request & { file?: any },
+  res: Response
+) => {
+  if (!req.file || !req.params.id) {
+    return errorResponse(res, "No file or room ID provided", [], 400);
+  }
+  try {
+    const room = await Room.findById(req.params.id);
+    if (!room) {
+      return errorResponse(res, "Room not found", [], 404);
+    }
+    // Save S3 public URL in imagePath
+    room.imagePath = req.file.location;
+    await room.save();
+    return successResponse(res, "Room photo uploaded successfully", room);
   } catch (error) {
     return errorResponse(res, (error as Error).message);
   }
