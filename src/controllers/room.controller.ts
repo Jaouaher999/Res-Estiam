@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
-import Room from "../models/room.model";
+import { Room } from "../models/room.model";
 import { errorResponse, successResponse } from "../utils/responseHandler";
+import { Booking } from "../models/booking.model";
 
 //create room (Admin only)
 export const createRoom = async (req: Request, res: Response) => {
@@ -22,7 +23,7 @@ export const createRoom = async (req: Request, res: Response) => {
 //get All Rooms
 export const getAllRooms = async (req: Request, res: Response) => {
   try {
-    const rooms = await Room.find({ isDeleted: false });
+    const rooms = await Room.find();
     if (rooms.length === 0) {
       return res.status(404).json({
         success: false,
@@ -68,25 +69,27 @@ export const updateRoom = async (req: Request, res: Response) => {
   }
 };
 
-//delete room (soft delete, admin only)
+//delete room (permanent delete, admin only, cascade delete bookings)
 export const deleteRoom = async (req: Request, res: Response) => {
   try {
-    const room = await Room.findByIdAndUpdate(
-      req.params.id,
-      { isDeleted: true },
-      { new: true }
-    );
+    const room = await Room.findByIdAndDelete(req.params.id);
     if (!room)
       return res
         .status(404)
         .json({ success: false, message: "Room not found" });
-    return successResponse(res, "Room deleted successfully", room);
+    // Cascade delete bookings for this room
+    await Booking.deleteMany({ room: req.params.id });
+    return successResponse(
+      res,
+      "Room and related bookings deleted successfully",
+      room
+    );
   } catch (error) {
     return errorResponse(res, (error as Error).message);
   }
 };
 
-// Upload room photo and update imagePath
+// Upload room photo and update imagePaths
 export const uploadRoomPhoto = async (
   req: Request & { file?: any },
   res: Response
@@ -99,8 +102,9 @@ export const uploadRoomPhoto = async (
     if (!room) {
       return errorResponse(res, "Room not found", [], 404);
     }
-    // Save S3 public URL in imagePath
-    room.imagePath = req.file.location;
+    // Save S3 public URL in imagePaths array
+    room.imagePaths = room.imagePaths || [];
+    room.imagePaths.push(req.file.location);
     await room.save();
     return successResponse(res, "Room photo uploaded successfully", room);
   } catch (error) {

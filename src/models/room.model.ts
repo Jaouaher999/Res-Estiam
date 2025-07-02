@@ -5,8 +5,7 @@ type RoomType = {
   roomNo: number;
   capacity: number;
   materials: string[];
-  imagePath?: string;
-  isDeleted: boolean;
+  imagePaths?: string[];
 };
 
 const roomSchema = new Schema<RoomType>(
@@ -15,8 +14,7 @@ const roomSchema = new Schema<RoomType>(
     roomNo: { type: Number, required: true, unique: true },
     capacity: { type: Number, required: true },
     materials: { type: [String], default: [] },
-    imagePath: { type: String },
-    isDeleted: { type: Boolean, default: false },
+    imagePaths: { type: [String], default: [] },
   },
   { timestamps: true }
 );
@@ -25,4 +23,4 @@ roomSchema.index({ roomNo: 1 }, { unique: true });
 
 const Room = model<RoomType>("Room", roomSchema);
 
-export default Room;
+export { Room };

@@ -5,7 +5,6 @@ type BookingType = {
   user: Types.ObjectId;
   startDate: Date;
   endDate: Date;
-  isDeleted: boolean;
 };
 
 const bookingSchema = new Schema<BookingType>(
@@ -14,10 +13,9 @@ const bookingSchema = new Schema<BookingType>(
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
-    isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
 const Booking = model<BookingType>("Booking", bookingSchema);
-export default Booking;
+export { Booking };

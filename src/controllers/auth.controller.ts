@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { loginSchema, signupSchema } from "../utils/validators";
-import User from "../models/user.model";
+import { User } from "../models/user.model";
 import { errorResponse, successResponse } from "../utils/responseHandler";
 
 // Register User
@@ -9,7 +9,7 @@ export const registerUser = async (req: Request, res: Response) => {
   if (!parsed.success)
     return res.status(400).json({ error: parsed.error.errors });
 
-  const { name, email, password, phone, address, role } = req.body;
+  const { name, email, password, phone, role } = req.body;
 
   try {
     const userExists = await User.findOne({ email });
@@ -22,7 +22,6 @@ export const registerUser = async (req: Request, res: Response) => {
       email,
       password,
       phone,
-      address,
       role,
     });
 
@@ -35,7 +34,6 @@ export const registerUser = async (req: Request, res: Response) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
-        address: user.address,
       },
       201
     );
@@ -71,7 +69,6 @@ export const loginUser = async (req: Request, res: Response) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
-        address: user.address,
         token,
       },
       200

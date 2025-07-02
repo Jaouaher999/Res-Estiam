@@ -24,7 +24,11 @@ export const upload = multer({
       cb: (error: any, key?: string) => void
     ) {
       const ext = file.originalname.split(".").pop();
-      const key = `rooms/${Date.now()}.${ext}`;
+      const roomId =
+        (req as any).params && (req as any).params.id
+          ? (req as any).params.id
+          : Date.now();
+      const key = `rooms/${roomId}/${Date.now()}.${ext}`;
       cb(null, key);
     },
   }),

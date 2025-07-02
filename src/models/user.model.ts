@@ -8,13 +8,10 @@ export type UserType = {
   email: string;
   password: string;
   phone: string;
-  address: string;
   role: "user" | "admin";
   comparePassword: (password: string) => Promise<boolean>;
   getSignedJwtToken: () => string;
 };
-
-
 
 const userSchema = new Schema<UserType>(
   {
@@ -22,13 +19,10 @@ const userSchema = new Schema<UserType>(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     phone: { type: String, required: true },
-    address: { type: String, required: true },
     role: { type: String, default: "user" },
   },
   { timestamps: true }
 );
-
-
 
 userSchema.index({ email: 1 }, { unique: true });
 
@@ -50,4 +44,4 @@ userSchema.methods.getSignedJwtToken = function () {
 };
 
 const User = model<UserType>("User", userSchema);
-export default User;
+export { User };

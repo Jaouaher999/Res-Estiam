@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import User from "../models/user.model";
+import { User } from "../models/user.model";
 import { JWT_SECRET } from "../config/dotenv";
 
 export const protect = async (

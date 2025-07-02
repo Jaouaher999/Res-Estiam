@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import Room from "../models/room.model";
-import Booking from "../models/booking.model";
+import { Room } from "../models/room.model";
+import { Booking } from "../models/booking.model";
 import { errorResponse, successResponse } from "../utils/responseHandler";
 
 export const createBooking = async (req: Request, res: Response) => {
@@ -16,7 +16,6 @@ export const createBooking = async (req: Request, res: Response) => {
     // Check for overlapping bookings
     const conflict = await Booking.findOne({
       room,
-      isDeleted: false,
       $or: [{ startDate: { $lt: endDate }, endDate: { $gt: startDate } }],
     });
     if (conflict) {
@@ -40,7 +39,7 @@ export const createBooking = async (req: Request, res: Response) => {
     const populatedBooking = await Booking.findById(booking._id)
       .populate({
         path: "room",
-        select: "name roomNo capacity materials isDeleted",
+        select: "name roomNo capacity materials",
       })
       .populate({
         path: "user",
@@ -122,7 +121,6 @@ export const updateBooking = async (req: Request, res: Response) => {
       const conflict = await Booking.findOne({
         _id: { $ne: booking._id },
         room: booking.room,
-        isDeleted: false,
         $or: [
           {
             startDate: { $lt: endDate || booking.endDate },
@@ -148,19 +146,13 @@ export const updateBooking = async (req: Request, res: Response) => {
   }
 };
 
-// Delete Booking (Soft Delete, Only Accessible by Admin)
+// Delete Booking (Permanent Delete, Only Accessible by Admin)
 export const deleteBooking = async (req: Request, res: Response) => {
   try {
-    const booking = await Booking.findByIdAndUpdate(
-      req.params.id,
-      { isDeleted: true },
-      { new: true }
-    );
-
+    const booking = await Booking.findByIdAndDelete(req.params.id);
     if (!booking) {
       return errorResponse(res, "Booking not found", [], 404);
     }
-
     return successResponse(res, "Booking deleted successfully", booking);
   } catch (error) {
     return errorResponse(res, (error as Error).message);
