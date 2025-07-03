@@ -49,12 +49,7 @@ A web-based application for reserving school rooms. Users can browse available r
 
 ## Installation
 
-1. **Clone the repository:**
-   ```bash
-   git clone <your-repo-url>
-   cd <project-folder>
-   ```
-2. **Install dependencies:**
+1. **Install dependencies:**
    ```bash
    npm install
    ```
@@ -98,31 +93,33 @@ AWS_S3_BUCKET_NAME=your-bucket-name
 
 ### Authentication
 
-| Method | Endpoint         | Description            |
-| ------ | ---------------- | ---------------------- |
-| POST   | /api/auth/signup | Register a new user    |
-| POST   | /api/auth/login  | Log in and get a token |
+| Method | Endpoint                  | Description                          |
+| ------ | ------------------------- | ------------------------------------ |
+| POST   | /api/auth/signup          | Register a new user                  |
+| POST   | /api/auth/login           | Log in and get a token               |
+| POST   | /api/auth/change-password | Change user password (auth required) |
+| PUT    | /api/auth/update-profile  | Update user profile (auth required)  |
 
-### Room Management (Admin Only)
+### Room Management (Admin Only unless specified)
 
-| Method | Endpoint             | Description                                             |
-| ------ | -------------------- | ------------------------------------------------------- |
-| POST   | /api/rooms           | Create a new room                                       |
-| GET    | /api/rooms           | Retrieve all rooms                                      |
-| GET    | /api/rooms/:id       | Retrieve a specific room                                |
-| PUT    | /api/rooms/:id       | Update room details                                     |
-| DELETE | /api/rooms/:id       | Soft-delete a room                                      |
-| POST   | /api/rooms/:id/photo | Upload a room photo (form-data, key: photo, type: file) |
+| Method | Endpoint             | Description                                        |
+| ------ | -------------------- | -------------------------------------------------- |
+| POST   | /api/rooms           | Create a new room (Admin)                          |
+| GET    | /api/rooms           | Retrieve all rooms (Public)                        |
+| GET    | /api/rooms/:id       | Retrieve a specific room (Auth required)           |
+| PUT    | /api/rooms/:id       | Update room details (Admin)                        |
+| DELETE | /api/rooms/:id       | Soft-delete a room (Admin)                         |
+| POST   | /api/rooms/:id/photo | Upload a room photo (Admin, form-data, key: photo) |
 
 ### Booking Management
 
-| Method | Endpoint          | Description                   |
-| ------ | ----------------- | ----------------------------- |
-| POST   | /api/bookings     | Create a new booking          |
-| GET    | /api/bookings     | Retrieve all bookings (Admin) |
-| GET    | /api/my-bookings  | Retrieve user's bookings      |
-| PUT    | /api/bookings/:id | Update a booking (Admin)      |
-| DELETE | /api/bookings/:id | Soft-delete a booking (Admin) |
+| Method | Endpoint          | Description                     |
+| ------ | ----------------- | ------------------------------- |
+| POST   | /api/bookings     | Create a new booking (Auth)     |
+| GET    | /api/bookings     | Retrieve all bookings (Admin)   |
+| GET    | /api/my-bookings  | Retrieve user's bookings (Auth) |
+| PUT    | /api/bookings/:id | Update a booking (Admin)        |
+| DELETE | /api/bookings/:id | Soft-delete a booking (Admin)   |
 
 #### Booking Example (JSON):
 
@@ -158,8 +155,4 @@ All errors return a JSON response with a message and details. Example:
 
 ---
 
-## License
 
-MIT
-
-"# meeting_room_booking-System"
