@@ -4,9 +4,12 @@ import { Booking } from "../models/booking.model";
 import { errorResponse, successResponse } from "../utils/responseHandler";
 
 export const createBooking = async (req: Request, res: Response) => {
-  const { startDate, endDate, room, user } = req.body;
+  let { startDate, endDate, room, user } = req.body;
 
   try {
+    // Convert dates to UTC
+    startDate = new Date(startDate).toISOString();
+    endDate = new Date(endDate).toISOString();
     // Check if the room exists
     const selectedRoom = await Room.findById(room);
     if (!selectedRoom) {
@@ -107,8 +110,11 @@ export const getUserBookings = async (req: Request, res: Response) => {
 
 // Update Booking (Only Accessible by Admin)
 export const updateBooking = async (req: Request, res: Response) => {
-  const { startDate, endDate } = req.body;
+  let { startDate, endDate } = req.body;
   try {
+    // Convert dates to UTC if provided
+    if (startDate) startDate = new Date(startDate).toISOString();
+    if (endDate) endDate = new Date(endDate).toISOString();
     const booking = await Booking.findById(req.params.id);
     if (!booking) {
       return errorResponse(res, "Booking not found", [], 404);
